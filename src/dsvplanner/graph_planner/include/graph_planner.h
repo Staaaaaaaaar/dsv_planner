@@ -82,6 +82,7 @@ private:
   double kDownsampleSize;
   double kObstacleHeightThres;
   double kOverheadObstacleHeightThres;
+  double kCollisionCheckHeight;
   double kCollisionCheckDistace;
   double kNextVertexMaintainTime;
   int kExecuteFrequency;

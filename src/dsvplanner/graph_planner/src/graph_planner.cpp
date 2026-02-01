@@ -88,6 +88,11 @@ bool GraphPlanner::readParameters()
     ROS_ERROR("Cannot read parameter: kOverheadObstacleHeightThres");
     return false;
   }
+  if (!nh_.getParam("kCollisionCheckHeight", kCollisionCheckHeight))
+  {
+    kCollisionCheckHeight = kOverheadObstacleHeightThres;
+    ROS_WARN("Cannot read parameter: kCollisionCheckHeight, fallback to kOverheadObstacleHeightThres");
+  }
   if (!nh_.getParam("kCollisionCheckDistace", kCollisionCheckDistace))
   {
     ROS_ERROR("Cannot read parameter: kCollisionCheckDistace");
@@ -170,7 +175,7 @@ void GraphPlanner::terrainCallback(const sensor_msgs::PointCloud2::ConstPtr& ter
     float pointY = point.y;
     float pointZ = point.z;
 
-    if (point.intensity > kObstacleHeightThres && point.intensity < kOverheadObstacleHeightThres)
+    if (point.intensity > kObstacleHeightThres)
     {
       point.x = pointX;
       point.y = pointY;
@@ -335,24 +340,28 @@ bool GraphPlanner::collisionCheckByTerrain(geometry_msgs::Point robot_position, 
   geometry_msgs::Point start_point = robot_position;
   geometry_msgs::Point end_point = planned_graph_.vertices[end_vertex_idx].location;
 
-  int count = 0;
-  double distance = sqrt((end_point.x - start_point.x) * (end_point.x - start_point.x) +
-                         (end_point.y - start_point.y) * (end_point.y - start_point.y));
-  double check_point_num = distance / (kCollisionCheckDistace);
-  for (int j = 0; j < check_point_num; j++)
+  double distance_xy = sqrt((end_point.x - start_point.x) * (end_point.x - start_point.x) +
+                            (end_point.y - start_point.y) * (end_point.y - start_point.y));
+  if (distance_xy < 1e-3)
   {
+    return false;
+  }
+  int check_point_num = static_cast<int>(ceil(distance_xy / kCollisionCheckDistace));
+  for (int j = 0; j <= check_point_num; j++)
+  {
+    double ratio = (j * kCollisionCheckDistace) / distance_xy;
+    if (ratio > 1.0)
+      ratio = 1.0;
     geometry_msgs::Point p1;
-    p1.x = start_point.x + j * kCollisionCheckDistace / distance * (end_point.x - start_point.x);
-    p1.y = start_point.y + j * kCollisionCheckDistace / distance * (end_point.y - start_point.y);
+    p1.x = start_point.x + ratio * (end_point.x - start_point.x);
+    p1.y = start_point.y + ratio * (end_point.y - start_point.y);
+    p1.z = start_point.z + ratio * (end_point.z - start_point.z);
     for (int i = 0; i < terrain_point_crop_->points.size(); i++)
     {
-      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) * (p1.x - terrain_point_crop_->points[i].x) +
-                         (p1.y - terrain_point_crop_->points[i].y) * (p1.y - terrain_point_crop_->points[i].y));
-      if (dist < kCollisionCheckDistace)
-      {
-        count++;
-      }
-      if (count > 0)
+      double dist_xy = sqrt((p1.x - terrain_point_crop_->points[i].x) * (p1.x - terrain_point_crop_->points[i].x) +
+                            (p1.y - terrain_point_crop_->points[i].y) * (p1.y - terrain_point_crop_->points[i].y));
+      if (dist_xy < kCollisionCheckDistace &&
+          fabs(p1.z - terrain_point_crop_->points[i].z) < kCollisionCheckHeight)
       {
         return true;
       }

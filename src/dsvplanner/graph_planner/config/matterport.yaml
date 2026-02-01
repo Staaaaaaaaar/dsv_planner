@@ -14,6 +14,7 @@ kWaypointProjectionDistance         : 5.0 # distance between waypoint and robot 
 kDownsampleSize                     : 0.1 # terrain cloud downsample size
 kObstacleHeightThres                : 0.05 # the obstacle height that will be considered when filtering the terrain cloud
 kOverheadObstacleHeightThres        : 1.0 # the overhead obstacle height that will be considered when filtering the terrain cloud
+kCollisionCheckHeight               : 0.50 # vertical collision check tolerance around the path
 kCollisionCheckDistace              : 0.15 # the collision check radius
 kNextVertexMaintainTime             : 5   # when next vertex goal makes the path longer, keep the previous goal for this long time
 kExecuteFrequency                   : 5   # the frequency of the execute function
