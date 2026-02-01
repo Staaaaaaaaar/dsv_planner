@@ -20,6 +20,7 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <std_srvs/Empty.h>
 
 #include <pcl/point_types.h>
@@ -73,6 +74,7 @@ std::string gp_status_topic = "/graph_planner_status";
 std::string odom_topic = "/state_estimation";
 std::string begin_signal_topic = "/start_exploring";
 std::string stop_signal_topic = "/stop_exploring";
+std::string finish_time_topic = "/exploration_finish_time";
 
 tf::StampedTransform transformToMap;
 
@@ -84,6 +86,7 @@ ros::Publisher waypoint_pub;
 ros::Publisher gp_command_pub;
 ros::Publisher effective_plan_time_pub;
 ros::Publisher total_plan_time_pub;
+ros::Publisher finish_time_pub;
 ros::Subscriber gp_status_sub;
 ros::Subscriber waypoint_sub;
 ros::Subscriber odom_sub;
@@ -204,11 +207,13 @@ int main(int argc, char** argv)
   nhPrivate.getParam("/interface/odomTopic", odom_topic);
   nhPrivate.getParam("/interface/beginSignalTopic", begin_signal_topic);
   nhPrivate.getParam("/interface/stopSignalTopic", stop_signal_topic);
+  nhPrivate.getParam("/interface/finishTimeTopic", finish_time_topic);
 
   waypoint_pub = nh.advertise<geometry_msgs::PointStamped>(waypoint_topic, 5);
   gp_command_pub = nh.advertise<graph_planner::GraphPlannerCommand>(gp_command_topic, 1);
   effective_plan_time_pub = nh.advertise<std_msgs::Float32>(effective_plan_time_topic, 1);
   total_plan_time_pub = nh.advertise<std_msgs::Float32>(total_plan_time_topic, 1);
+  finish_time_pub = nh.advertise<std_msgs::Float64>(finish_time_topic, 1, true);
   gp_status_sub = nh.subscribe<graph_planner::GraphPlannerStatus>(gp_status_topic, 1, gp_status_callback);
   waypoint_sub = nh.subscribe<geometry_msgs::PointStamped>(waypoint_topic, 1, waypoint_callback);
   odom_sub = nh.subscribe<nav_msgs::Odometry>(odom_topic, 1, odom_callback);
@@ -268,6 +273,10 @@ int main(int argc, char** argv)
           std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl << std::endl;
           effective_time.data = 0;
           effective_plan_time_pub.publish(effective_time);
+
+          std_msgs::Float64 finish_time_msg;
+          finish_time_msg.data = ros::Time::now().toSec();
+          finish_time_pub.publish(finish_time_msg);
         }
         else
         {

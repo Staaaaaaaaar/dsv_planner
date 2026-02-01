@@ -9,10 +9,10 @@ sub_odometry_topic                  : /state_estimation
 sub_terrain_topic                   : /terrain_map_ext
 
 # Constants
-kLookAheadDist                      : 5.0 # the minimum distance between next goal vertex and current vertex
-kWaypointProjectionDistance         : 5.0 # distance between waypoint and robot must larger than this value when going to location or home
-kDownsampleSize                     : 0.2 # terrain cloud downsample size
-kObstacleHeightThres                : 0.20 # the obstacle height that will be considered when filtering the terrain cloud
+kLookAheadDist                      : 4.0 # the minimum distance between next goal vertex and current vertex
+kWaypointProjectionDistance         : 4.0 # distance between waypoint and robot must larger than this value when going to location or home
+kDownsampleSize                     : 0.1 # terrain cloud downsample size
+kObstacleHeightThres                : 0.40 # the obstacle height that will be considered when filtering the terrain cloud
 kOverheadObstacleHeightThres        : 1.20 # the overhead obstacle height that will be considered when filtering the terrain cloud
 kCollisionCheckDistace              : 0.35 # the collision check radius
 kNextVertexMaintainTime             : 5   # when next vertex goal makes the path longer, keep the previous goal for this long time

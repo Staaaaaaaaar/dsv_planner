@@ -63,6 +63,8 @@ bool DualStateFrontier::readParameters()
   nh_private_.getParam("/elevation/kTerrainVoxelSize", kTerrainVoxelSize);
   nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
   nh_private_.getParam("/elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
+  nh_private_.param("/elevation/kTerrainDownsampleSize", kTerrainDownsampleSize, 0.3);
+  nh_private_.param("/elevation/kMaxVoxelZDiff", kTerrainVoxelMaxZDiff, 0.4);
 
   return true;
 }
@@ -262,7 +264,7 @@ bool DualStateFrontier::isCleanedFrontier(pcl::PointXYZ point)
     {
       double dist = sqrt((point.x - cleanedFrontier_->points[i].x) * (point.x - cleanedFrontier_->points[i].x) +
                          (point.y - cleanedFrontier_->points[i].y) * (point.y - cleanedFrontier_->points[i].y) +
-                         (point.z - cleanedFrontier_->points[i].z) * (point.x - cleanedFrontier_->points[i].z));
+                         (point.z - cleanedFrontier_->points[i].z) * (point.z - cleanedFrontier_->points[i].z));
       if (dist < 3)
       {
         return true;
@@ -296,7 +298,7 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point)
         continue;
       }
       bool insideAFieldOfView = false;
-      if (fabs(dir[2] < sqrt(dir[0] * dir[0] + dir[1] * dir[1]) * tan(M_PI * kSensorVerticalView / 360)))
+      if (fabs(dir[2]) < sqrt(dir[0] * dir[0] + dir[1] * dir[1]) * tan(M_PI * kSensorVerticalView / 360))
       {
         insideAFieldOfView = true;
       }
@@ -329,7 +331,7 @@ bool DualStateFrontier::inSensorRangeofRobot(StateVec point)
     return false;
   }
   bool insideAFieldOfView = false;
-  if (fabs(dir[2] < sqrt(dir[0] * dir[0] + dir[1] * dir[1]) * tan(M_PI * kSensorVerticalView / 360)))
+  if (fabs(dir[2]) < sqrt(dir[0] * dir[0] + dir[1] * dir[1]) * tan(M_PI * kSensorVerticalView / 360))
   {
     insideAFieldOfView = true;
   }
@@ -479,7 +481,7 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
   pcl::fromROSMsg(*terrain_msg, *terrain_cloud_);
 
   pcl::VoxelGrid<pcl::PointXYZI> point_ds;
-  point_ds.setLeafSize(0.3, 0.3, 0.3);
+  point_ds.setLeafSize(kTerrainDownsampleSize, kTerrainDownsampleSize, kTerrainDownsampleSize);
   point_ds.setInputCloud(terrain_cloud_);
   point_ds.filter(*terrain_cloud_ds);
 
@@ -547,7 +549,7 @@ void DualStateFrontier::updateTerrainElevationForKnown()
   {
     if (terrain_voxel_points_num_[i] > 0)
     {
-      if (terrain_voxel_max_elev_[i] - terrain_voxel_min_elev_[i] >= 0.4)
+      if (terrain_voxel_max_elev_[i] - terrain_voxel_min_elev_[i] >= kTerrainVoxelMaxZDiff)
         terrain_voxel_elev_[i] = 1000;  // set a high value to untraversable
                                         // voxel
       else

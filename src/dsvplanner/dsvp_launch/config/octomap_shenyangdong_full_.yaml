@@ -14,6 +14,6 @@ octo/sensorMaxRange: 15.0
 octo/visualizeMinZ: -25.0
 octo/visualizeMaxZ: 25.0
 octo/mapPublishFrequency: 1.0
-octo/treatUnknownAsOccupied: false
+octo/treatUnknownAsOccupied: true
 octo/changeDetectionEnabled: false
 octo/velodyne_cloud_topic: /sensor_scan

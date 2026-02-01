@@ -77,6 +77,8 @@ public:
   double kTerrainVoxelSize;
   int kTerrainVoxelHalfWidth;
   int kTerrainVoxelWidth;
+    double kTerrainDownsampleSize;
+    double kTerrainVoxelMaxZDiff;
 
   // Variables
 
